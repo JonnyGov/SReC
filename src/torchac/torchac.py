@@ -21,6 +21,7 @@ along with L3C-PyTorch.  If not, see <https://www.gnu.org/licenses/>.
 
 import torch
 
+
 # torchac can be built with and without CUDA support.
 # Here, we try to import both torchac_backend_gpu and torchac_backend_cpu.
 # If both fail, an exception is thrown here already.
@@ -48,9 +49,6 @@ try:
 except ImportError as e:
     CPU_SUPPORTED = False
     import_errors.append(e)
-
-
-print(f"Using torchac: {CUDA_SUPPORTED}")
 
 
 imported_at_least_one = CUDA_SUPPORTED or CPU_SUPPORTED
@@ -134,7 +132,7 @@ def encode_logistic_mixture(
 
     if targets.is_cuda:
         return _get_gpu_backend().encode_logistic_mixture(
-            targets, means, log_scales, logit_probs_softmax, sym)
+                targets, means, log_scales, logit_probs_softmax, sym)
     else:
         cdf = _get_uint16_cdf(logit_probs_softmax, targets, means, log_scales)
         return encode_cdf(cdf, sym)
@@ -162,7 +160,7 @@ def decode_logistic_mixture(
 
     if targets.is_cuda:
         return _get_gpu_backend().decode_logistic_mixture(
-            targets, means, log_scales, logit_probs_softmax, input_string)
+                targets, means, log_scales, logit_probs_softmax, input_string)
     else:
         cdf = _get_uint16_cdf(logit_probs_softmax, targets, means, log_scales)
         return decode_cdf(cdf, input_string)
@@ -174,8 +172,7 @@ def decode_logistic_mixture(
 # This basically replicates that kernel in pure PyTorch.
 
 def _get_uint16_cdf(logit_probs_softmax, targets, means, log_scales):
-    cdf_float = _get_C_cur_weighted(
-        logit_probs_softmax, targets, means, log_scales)
+    cdf_float = _get_C_cur_weighted(logit_probs_softmax, targets, means, log_scales)
     cdf = _renorm_cast_cdf_(cdf_float, precision=16)
     cdf = cdf.cpu()
     return cdf
